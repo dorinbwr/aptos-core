@@ -496,7 +496,7 @@ fn single_test_suite(test_name: &str) -> Result<ForgeConfig<'static>> {
 
 fn run_consensus_only_three_region_simulation(config: ForgeConfig) -> ForgeConfig {
     config
-        .with_initial_validator_count(NonZeroUsize::new(20).unwrap())
+        .with_initial_validator_count(NonZeroUsize::new(100).unwrap())
         .with_emit_job(
             EmitJobRequest::default()
                 .mode(EmitJobMode::ConstTps { tps: 30000 })
@@ -527,6 +527,10 @@ fn run_consensus_only_three_region_simulation(config: ForgeConfig) -> ForgeConfi
                 ["bootstrapping_mode"] = "ExecuteTransactionsFromGenesis".into();
             helm_values["validator"]["config"]["state_sync"]["state_sync_driver"]
                 ["continuous_syncing_mode"] = "ExecuteTransactions".into();
+            helm_values["validator"]["resources"]["limits"]["memory"] = "96Gi".into();
+            helm_values["validator"]["resources"]["requests"]["memory"] = "96Gi".into();
+            helm_values["validator"]["resources"]["limits"]["cpu"] = "30".into();
+            helm_values["validator"]["resources"]["requests"]["cpu"] = "30".into();
         }))
         // TODO(ibalajiarun): tune these success critiera after we have a better idea of the test behavior
         .with_success_criteria(
