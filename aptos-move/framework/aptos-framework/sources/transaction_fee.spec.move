@@ -28,9 +28,19 @@ spec aptos_framework::transaction_fee {
     }
 
     spec burn_coin_fraction(coin: &mut Coin<AptosCoin>, burn_percentage: u8) {
+        use aptos_framework::optional_aggregator;
+        use aptos_framework::aggregator;
         let amount_to_burn = (burn_percentage * coin::value(coin)) / 100;
         aborts_if burn_percentage > 100;
         aborts_if (amount_to_burn > 0) && !exists<AptosCoinCapabilities>(@aptos_framework);
+        aborts_if (amount_to_burn > 0) && coin.value < amount_to_burn;
+        let maybe_supply = coin::get_optional_aggregator<AptosCoin>();
+        aborts_if amount_to_burn > 0 && option::is_some(maybe_supply) && optional_aggregator::is_parallelizable(option::borrow(maybe_supply))
+            && aggregator::spec_aggregator_get_val(option::borrow(option::borrow(maybe_supply).aggregator)) <
+            amount_to_burn;
+        aborts_if option::is_some(maybe_supply) && !optional_aggregator::is_parallelizable(option::borrow(maybe_supply))
+            && option::borrow(option::borrow(maybe_supply).integer).value <
+            amount_to_burn;
         include (amount_to_burn > 0) ==> coin::AbortsIfNotExistCoinInfo<AptosCoin>;
     }
 
@@ -47,9 +57,16 @@ spec aptos_framework::transaction_fee {
     }
 
     spec collect_fee(account: address, fee: u64) {
+        use aptos_framework::aggregator;
+        let collected_fees = global<CollectedFeesPerBlock>(@aptos_framework).amount;
+        let aggr = collected_fees.value;
         aborts_if !exists<CollectedFeesPerBlock>(@aptos_framework);
         aborts_if fee > 0 && !exists<coin::CoinStore<AptosCoin>>(account);
         aborts_if fee > 0 && global<coin::CoinStore<AptosCoin>>(account).coin.value < fee;
+        aborts_if fee > 0 && aggregator::spec_aggregator_get_val(aggr)
+            + fee > aggregator::spec_get_limit(aggr);
+        aborts_if fee > 0 && aggregator::spec_aggregator_get_val(aggr)
+            + fee > MAX_U128;
     }
 
     /// Ensure caller is admin.

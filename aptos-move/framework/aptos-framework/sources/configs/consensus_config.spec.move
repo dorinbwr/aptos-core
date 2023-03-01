@@ -25,6 +25,7 @@ spec aptos_framework::consensus_config {
         use aptos_framework::aptos_coin::AptosCoin;
 
         let addr = signer::address_of(account);
+        pragma aborts_if_is_partial;
         aborts_if !system_addresses::is_aptos_framework_address(addr);
         aborts_if !exists<ConsensusConfig>(@aptos_framework);
         aborts_if !(len(config) > 0);

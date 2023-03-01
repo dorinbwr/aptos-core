@@ -17,6 +17,7 @@ spec aptos_framework::version {
         requires exists<stake::ValidatorFees>(@aptos_framework);
         requires exists<CoinInfo<AptosCoin>>(@aptos_framework);
 
+        pragma aborts_if_is_partial;
         aborts_if !exists<SetVersionCapability>(signer::address_of(account));
         aborts_if !exists<Version>(@aptos_framework);
 

@@ -578,6 +578,9 @@ Only called during genesis.
 <pre><code><b>let</b> amount_to_burn = (burn_percentage * <a href="coin.md#0x1_coin_value">coin::value</a>(<a href="coin.md#0x1_coin">coin</a>)) / 100;
 <b>aborts_if</b> burn_percentage &gt; 100;
 <b>aborts_if</b> (amount_to_burn &gt; 0) && !<b>exists</b>&lt;<a href="transaction_fee.md#0x1_transaction_fee_AptosCoinCapabilities">AptosCoinCapabilities</a>&gt;(@aptos_framework);
+<b>aborts_if</b> (amount_to_burn &gt; 0) && <a href="coin.md#0x1_coin">coin</a>.value &lt; amount_to_burn;
+<b>include</b> (amount_to_burn &gt; 0) ==&gt; <a href="coin.md#0x1_coin_AbortsIfOptionalAggregatorInteger">coin::AbortsIfOptionalAggregatorInteger</a>&lt;AptosCoin&gt;;
+<b>include</b> (amount_to_burn &gt; 0) ==&gt; <a href="coin.md#0x1_coin_AbortsIfAggregator">coin::AbortsIfAggregator</a>&lt;AptosCoin&gt;;
 <b>include</b> (amount_to_burn &gt; 0) ==&gt; <a href="coin.md#0x1_coin_AbortsIfNotExistCoinInfo">coin::AbortsIfNotExistCoinInfo</a>&lt;AptosCoin&gt;;
 </code></pre>
 
@@ -628,9 +631,15 @@ Only called during genesis.
 
 
 
-<pre><code><b>aborts_if</b> !<b>exists</b>&lt;<a href="transaction_fee.md#0x1_transaction_fee_CollectedFeesPerBlock">CollectedFeesPerBlock</a>&gt;(@aptos_framework);
+<pre><code><b>let</b> collected_fees = <b>global</b>&lt;<a href="transaction_fee.md#0x1_transaction_fee_CollectedFeesPerBlock">CollectedFeesPerBlock</a>&gt;(@aptos_framework).amount;
+<b>let</b> aggr = collected_fees.value;
+<b>aborts_if</b> !<b>exists</b>&lt;<a href="transaction_fee.md#0x1_transaction_fee_CollectedFeesPerBlock">CollectedFeesPerBlock</a>&gt;(@aptos_framework);
 <b>aborts_if</b> fee &gt; 0 && !<b>exists</b>&lt;<a href="coin.md#0x1_coin_CoinStore">coin::CoinStore</a>&lt;AptosCoin&gt;&gt;(<a href="account.md#0x1_account">account</a>);
 <b>aborts_if</b> fee &gt; 0 && <b>global</b>&lt;<a href="coin.md#0x1_coin_CoinStore">coin::CoinStore</a>&lt;AptosCoin&gt;&gt;(<a href="account.md#0x1_account">account</a>).<a href="coin.md#0x1_coin">coin</a>.value &lt; fee;
+<b>aborts_if</b> fee &gt; 0 && <a href="aggregator.md#0x1_aggregator_spec_aggregator_get_val">aggregator::spec_aggregator_get_val</a>(aggr)
+    + fee &gt; <a href="aggregator.md#0x1_aggregator_spec_get_limit">aggregator::spec_get_limit</a>(aggr);
+<b>aborts_if</b> fee &gt; 0 && <a href="aggregator.md#0x1_aggregator_spec_aggregator_get_val">aggregator::spec_aggregator_get_val</a>(aggr)
+    + fee &gt; MAX_U128;
 </code></pre>
 
 

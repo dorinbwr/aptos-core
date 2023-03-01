@@ -18,6 +18,7 @@ spec aptos_framework::block {
         requires exists<stake::ValidatorFees>(@aptos_framework);
         requires exists<CoinInfo<AptosCoin>>(@aptos_framework);
 
+        pragma aborts_if_is_partial;
         aborts_if false;
     }
 

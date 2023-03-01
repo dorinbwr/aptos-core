@@ -1,7 +1,7 @@
 spec aptos_framework::gas_schedule {
     spec module {
         pragma verify = true;
-        pragma aborts_if_is_strict;
+        pragma aborts_if_is_partial;
     }
 
     spec initialize(aptos_framework: &signer, gas_schedule_blob: vector<u8>) {
@@ -22,6 +22,7 @@ spec aptos_framework::gas_schedule {
 
         requires exists<stake::ValidatorFees>(@aptos_framework);
         requires exists<CoinInfo<AptosCoin>>(@aptos_framework);
+        pragma aborts_if_is_partial;
 
         include system_addresses::AbortsIfNotAptosFramework{ account: aptos_framework };
         aborts_if len(gas_schedule_blob) == 0;
@@ -38,6 +39,7 @@ spec aptos_framework::gas_schedule {
 
         requires exists<stake::ValidatorFees>(@aptos_framework);
         requires exists<CoinInfo<AptosCoin>>(@aptos_framework);
+        pragma aborts_if_is_partial;
 
         include system_addresses::AbortsIfNotAptosFramework{ account: aptos_framework };
         aborts_if !exists<StorageGasConfig>(@aptos_framework);

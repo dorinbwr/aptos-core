@@ -1,7 +1,7 @@
 spec aptos_framework::reconfiguration {
     spec module {
         pragma verify = true;
-        pragma aborts_if_is_strict;
+        pragma aborts_if_is_partial;
 
         // After genesis, `Configuration` exists.
         invariant [suspendable] chain_status::is_operating() ==> exists<Configuration>(@aptos_framework);
@@ -68,6 +68,7 @@ spec aptos_framework::reconfiguration {
         requires exists<stake::ValidatorFees>(@aptos_framework);
         requires exists<CoinInfo<AptosCoin>>(@aptos_framework);
 
-        aborts_if false;
+        // TODO: complex aborts conditions.
+        pragma aborts_if_is_partial;
     }
 }

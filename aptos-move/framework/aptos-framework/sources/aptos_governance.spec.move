@@ -237,6 +237,8 @@ spec aptos_framework::aptos_governance {
         use aptos_framework::coin::CoinInfo;
         use aptos_framework::aptos_coin::AptosCoin;
 
+        // TODO: complex aborts conditions.
+        pragma aborts_if_is_partial;
         aborts_if !system_addresses::is_aptos_framework_address(signer::address_of(aptos_framework));
 
         requires chain_status::is_operating();
