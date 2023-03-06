@@ -195,6 +195,12 @@ impl FakeAptosDB {
     }
 
     fn get_frozen_subtree_hashes(&self, num_transactions: u64) -> Result<Vec<HashValue>> {
+        if num_transactions == 1 {
+            return self
+                .inner
+                .ledger_store
+                .get_frozen_subtree_hashes(num_transactions);
+        }
         MerkleAccumulator::<FakeAptosDB, TransactionAccumulatorHasher>::get_frozen_subtree_hashes(
             self,
             num_transactions,
@@ -631,7 +637,8 @@ impl DbReader for FakeAptosDB {
                 .buffered_state
                 .lock()
                 .state_after_checkpoint
-                .current_version)
+                .current_version
+                .or_else(|| self.inner.get_latest_state_checkpoint_version().unwrap()))
         })
     }
 
@@ -769,10 +776,14 @@ impl DbReader for FakeAptosDB {
     fn get_latest_transaction_info_option(
         &self,
     ) -> Result<Option<(Version, aptos_types::transaction::TransactionInfo)>> {
-        Ok(self
+        let latest_txn_info = self
             .latest_txn_info
             .load_full()
-            .map(|txn| txn.as_ref().clone()))
+            .map(|txn| txn.as_ref().clone());
+        if let Some(_) = latest_txn_info {
+            return Ok(latest_txn_info);
+        }
+        self.inner.get_latest_transaction_info_option()
     }
 
     fn get_accumulator_root_hash(&self, _version: Version) -> Result<HashValue> {
