@@ -307,7 +307,9 @@ impl DbWriter for FakeAptosDB {
                     .map(|version| version + 1)
                     .unwrap_or(0);
                 let num_transactions_in_db = self
-                    .get_latest_transaction_info_option()?
+                    .latest_txn_info
+                    .load_full()
+                    .map(|txn| txn.as_ref().clone())
                     .map(|(version, _)| version + 1)
                     .unwrap_or(0);
                 ensure!(
