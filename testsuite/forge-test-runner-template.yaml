@@ -21,11 +21,11 @@ spec:
       {FORGE_ARGS}
     resources:
       limits:
-        cpu: 15.5
-        memory: 26Gi
+        cpu: 30
+        memory: 120Gi
       requests:
-        cpu: 15
-        memory: 26Gi
+        cpu: 30
+        memory: 120Gi
     env:
     - name: FORGE_TRIGGERED_BY
       value: {FORGE_TRIGGERED_BY}
