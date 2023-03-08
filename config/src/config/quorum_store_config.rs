@@ -24,8 +24,8 @@ impl Default for QuorumStoreBackPressureConfig {
             decrease_duration_ms: 1000,
             increase_duration_ms: 1000,
             decrease_fraction: 0.5,
-            dynamic_min_batch_count: 200,
-            dynamic_max_batch_count: 2000,
+            dynamic_min_batch_count: 1000,
+            dynamic_max_batch_count: 5000,
         }
     }
 }
