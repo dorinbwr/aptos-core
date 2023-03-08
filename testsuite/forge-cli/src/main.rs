@@ -502,7 +502,7 @@ fn run_consensus_only_three_region_simulation(config: ForgeConfig) -> ForgeConfi
         .with_emit_job(
             EmitJobRequest::default()
                 .mode(EmitJobMode::MaxLoad {
-                    mempool_backlog: 250000,
+                    mempool_backlog: 600000,
                 })
                 .txn_expiration_time_secs(5 * 60),
         )
