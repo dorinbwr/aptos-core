@@ -27,6 +27,7 @@ mod event_store;
 mod ledger_store;
 mod lru_node_cache;
 mod pruner;
+mod state_kv_db;
 mod state_merkle_db;
 mod state_store;
 mod transaction_store;
@@ -115,6 +116,7 @@ use aptos_types::{
     write_set::WriteSet,
 };
 use aptos_vm::data_cache::AsMoveResolver;
+use arr_macro::arr;
 use itertools::zip_eq;
 use move_resource_viewer::MoveValueAnnotator;
 use once_cell::sync::Lazy;
@@ -254,7 +256,7 @@ impl Drop for RocksdbPropertyReporter {
 pub struct AptosDB {
     ledger_db: Arc<DB>,
     state_merkle_db: Arc<DB>,
-    state_kv_db: Arc<DB>,
+    state_kv_db: Arc<StateKvDb>,
     event_store: Arc<EventStore>,
     ledger_store: Arc<LedgerStore>,
     state_store: Arc<StateStore>,
@@ -885,7 +887,7 @@ impl AptosDB {
         first_version: u64,
         expected_state_db_usage: StateStorageUsage,
         ledger_batch: &SchemaBatch,
-        state_kv_batch: &SchemaBatch,
+        sharded_state_kv_batch: &[SchemaBatch; 256],
     ) -> Result<HashValue> {
         let last_version = first_version + txns_to_commit.len() as u64 - 1;
 
@@ -909,7 +911,7 @@ impl AptosDB {
                     first_version,
                     expected_state_db_usage,
                     ledger_batch,
-                    state_kv_batch,
+                    sharded_state_kv_batch,
                 )
             });
 
@@ -1774,14 +1776,15 @@ impl DbWriter for AptosDB {
 
             // Gather db mutations to `batch`.
             let ledger_batch = SchemaBatch::new();
-            let state_kv_batch = SchemaBatch::new();
+            let sharded_state_kv_batch = arr![SchemaBatch::new(); 256];
+            let state_kv_metadata_batch = SchemaBatch::new();
 
             let new_root_hash = self.save_transactions_impl(
                 txns_to_commit,
                 first_version,
                 latest_in_memory_state.current.usage(),
                 &ledger_batch,
-                &state_kv_batch,
+                &sharded_state_kv_batch,
             )?;
 
             ensure!(Some(last_version) == latest_in_memory_state.current_version,
@@ -1825,7 +1828,7 @@ impl DbWriter for AptosDB {
                     let _timer = OTHER_TIMERS_SECONDS
                         .with_label_values(&["save_transactions_commit"])
                         .start_timer();
-                    state_kv_batch.put::<DbMetadataSchema>(
+                    state_kv_metadata_batch.put::<DbMetadataSchema>(
                         &DbMetadataKey::StateKVCommitProgress,
                         &DbMetadataValue::Version(last_version),
                     )?;

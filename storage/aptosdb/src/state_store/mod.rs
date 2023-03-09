@@ -559,7 +559,7 @@ impl StateStore {
         first_version: Version,
         expected_usage: StateStorageUsage,
         ledger_batch: &SchemaBatch,
-        state_kv_batch: &SchemaBatch,
+        sharded_state_kv_batch: &[SchemaBatch; 256],
     ) -> Result<()> {
         let _timer = OTHER_TIMERS_SECONDS
             .with_label_values(&["put_value_sets"])
@@ -570,7 +570,7 @@ impl StateStore {
             first_version,
             expected_usage,
             ledger_batch,
-            state_kv_batch,
+            sharded_state_kv_batch,
         )?;
 
         let _timer = OTHER_TIMERS_SECONDS
@@ -583,7 +583,8 @@ impl StateStore {
             .flat_map_iter(|(i, kvs)| {
                 let version = first_version + i as Version;
                 kvs.iter().map(move |(k, v)| {
-                    state_kv_batch.put::<StateValueSchema>(&(k.clone(), version), v)
+                    sharded_state_kv_batch[k.get_shard_id() as usize]
+                        .put::<StateValueSchema>(&(k.clone(), version), v)
                 })
             })
             .collect()
@@ -611,7 +612,7 @@ impl StateStore {
         first_version: Version,
         expected_usage: StateStorageUsage,
         batch: &SchemaBatch,
-        state_kv_batch: &SchemaBatch,
+        sharded_state_kv_batch: &[SchemaBatch; 256],
     ) -> Result<()> {
         let _timer = OTHER_TIMERS_SECONDS
             .with_label_values(&["put_stats_and_indices"])
@@ -663,7 +664,8 @@ impl StateStore {
                     usage.add_item(key.size() + value.size());
                 } else {
                     // stale index of the tombstone at current version.
-                    state_kv_batch.put::<StaleStateValueIndexSchema>(
+                    sharded_state_kv_batch[key.get_shard_id() as usize]
+                        .put::<StaleStateValueIndexSchema>(
                         &StaleStateValueIndex {
                             stale_since_version: version,
                             version,
@@ -684,7 +686,8 @@ impl StateStore {
                 if let Some((old_version, old_value)) = old_version_and_value_opt {
                     usage.remove_item(key.size() + old_value.size());
                     // stale index of the old value at its version.
-                    state_kv_batch.put::<StaleStateValueIndexSchema>(
+                    sharded_state_kv_batch[key.get_shard_id() as usize]
+                        .put::<StaleStateValueIndexSchema>(
                         &StaleStateValueIndex {
                             stale_since_version: version,
                             version: old_version,
