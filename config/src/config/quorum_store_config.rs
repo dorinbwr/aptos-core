@@ -66,7 +66,7 @@ impl Default for QuorumStoreConfig {
             mempool_pulling_interval: 250,
             // TODO: This essentially turns fragments off, because there was performance degradation. Needs more investigation.
             end_batch_ms: 10,
-            max_batch_bytes: 4 * 1024 * 1024,
+            max_batch_bytes: 20 * 1024 * 1024, // 20MB
             batch_request_timeout_ms: 10000,
             batch_expiry_round_gap_when_init: 100,
             batch_expiry_round_gap_behind_latest_certified: 500,
