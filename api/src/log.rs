@@ -2,7 +2,8 @@
 // Parts of the project are originally copyright © Meta Platforms, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::metrics::{HISTOGRAM, RESPONSE_STATUS};
+use crate::metrics::{HISTOGRAM, REQUEST_SOURCE_CLIENT, RESPONSE_STATUS};
+use aptos_api_types::X_APTOS_SOURCE_CLIENT;
 use aptos_logger::{
     debug, info,
     prelude::{sample, SampleRate},
@@ -38,6 +39,13 @@ pub async fn middleware_log<E: Endpoint>(next: E, request: Request) -> Result<Re
             .and_then(|v| v.to_str().ok().map(|v| v.to_string())),
     };
 
+    let source_client = request
+        .headers()
+        .get(X_APTOS_SOURCE_CLIENT)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("request-source-client-not-set")
+        .to_owned();
+
     let response = next.get_response(request).await;
 
     let elapsed = start.elapsed();
@@ -69,6 +77,18 @@ pub async fn middleware_log<E: Endpoint>(next: E, request: Request) -> Result<Re
             log.status.to_string().as_str(),
         ])
         .observe(elapsed.as_secs_f64());
+
+    // Push a counter based on the request source, sliced up by endpoint + method.
+    REQUEST_SOURCE_CLIENT
+        .with_label_values(&[
+            &source_client,
+            response
+                .data::<OperationId>()
+                .map(|operation_id| operation_id.0)
+                .unwrap_or("operation_id_not_set"),
+            log.status.to_string().as_str(),
+        ])
+        .inc();
 
     Ok(response)
 }
