@@ -23,12 +23,12 @@ impl Default for QuorumStoreBackPressureConfig {
             // QS will be backpressured if the remaining total txns is more than this number
             backlog_txn_limit_count: MAX_SENDING_BLOCK_TXNS_QUORUM_STORE_OVERRIDE * 8,
             // QS will create batches immediately until this number is reached
-            backlog_batch_limit_count: 1000,
+            backlog_batch_limit_count: 400,
             decrease_duration_ms: 1000,
             increase_duration_ms: 1000,
             decrease_fraction: 0.5,
-            dynamic_min_txn_per_s: 5000,
-            dynamic_max_txn_per_s: 20000,
+            dynamic_min_txn_per_s: 160,
+            dynamic_max_txn_per_s: 2000,
         }
     }
 }
@@ -71,7 +71,7 @@ impl Default for QuorumStoreConfig {
             batch_generation_max_interval_ms: 250,
             // TODO: This essentially turns fragments off, because there was performance degradation. Needs more investigation.
             end_batch_ms: 10,
-            max_batch_bytes: 50 * 1024 * 1024, // 20MB
+            max_batch_bytes: 20 * 1024 * 1024, // 20MB
             batch_request_timeout_ms: 10000,
             batch_expiry_round_gap_when_init: 100,
             batch_expiry_round_gap_behind_latest_certified: 500,
