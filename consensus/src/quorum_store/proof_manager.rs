@@ -54,12 +54,18 @@ impl ProofManager {
         proof: ProofOfStore,
         network_sender: &mut NetworkSender,
     ) {
+        let num_txns = proof.info().num_txns;
         self.proofs_for_consensus.push(proof.clone(), true);
+        self.remaining_total_txn_num += num_txns;
+        self.remaining_total_proof_num += 1;
         network_sender.broadcast_proof_of_store(proof).await;
     }
 
     pub(crate) fn handle_remote_proof(&mut self, proof: ProofOfStore) {
+        let num_txns = proof.info().num_txns;
         self.proofs_for_consensus.push(proof, false);
+        self.remaining_total_txn_num += num_txns;
+        self.remaining_total_proof_num += 1;
     }
 
     pub(crate) fn handle_commit_notification(
@@ -201,16 +207,16 @@ impl ProofManager {
                             debug!("remaining back_pressure: {} {} {}", i, self.remaining_total_txn_num, self.remaining_total_proof_num);
                             // TODO: keeping here for metrics, might be part of the backpressure in the future?
                             self.proofs_for_consensus.clean_local_proofs(logical_time);
-                            let updated_back_pressure = self.qs_back_pressure();
-                            if updated_back_pressure != back_pressure {
-                                back_pressure = updated_back_pressure;
-                                debug!("tx back_pressure: {} {} {}", i, updated_back_pressure.txn_count, updated_back_pressure.proof_count);
-                                i += 1;
-                                if back_pressure_tx.send((back_pressure, i)).await.is_err() {
-                                    debug!("Failed to send back_pressure for commit notification");
-                                }
-                            }
                         },
+                    }
+                    let updated_back_pressure = self.qs_back_pressure();
+                    if updated_back_pressure != back_pressure {
+                        back_pressure = updated_back_pressure;
+                        debug!("tx back_pressure: {} {} {}", i, updated_back_pressure.txn_count, updated_back_pressure.proof_count);
+                        i += 1;
+                        if back_pressure_tx.send((back_pressure, i)).await.is_err() {
+                            debug!("Failed to send back_pressure for commit notification");
+                        }
                     }
                 },
             }
