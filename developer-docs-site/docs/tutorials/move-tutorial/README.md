@@ -290,7 +290,7 @@ method directly from a transaction, you'll want to change its signature to:
 ```
 public entry fun transfer(from: signer, to: address, amount: u64) acquires Balance { ... }
 ```
-Read more on Move function visibilities [here](../../guides/move-guides/book/functions.md#visibility).
+Read more on Move function [visibilities](../../guides/move-guides/book/functions.md#visibility).
 </details>
 <details>
 <summary>Comparison with Ethereum/Solidity</summary>
