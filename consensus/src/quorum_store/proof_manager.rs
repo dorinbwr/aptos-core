@@ -1,10 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{
-    network::{NetworkSender, QuorumStoreSender},
-    quorum_store::{batch_generator::BackPressure, counters, utils::ProofQueue},
-};
+use crate::quorum_store::{batch_generator::BackPressure, counters, utils::ProofQueue};
 use aptos_consensus_types::{
     common::{Payload, PayloadFilter, ProofWithData},
     proof_of_store::{LogicalTime, ProofOfStore},
@@ -12,19 +9,20 @@ use aptos_consensus_types::{
 };
 use aptos_crypto::HashValue;
 use aptos_logger::prelude::*;
+use aptos_types::PeerId;
 use futures::StreamExt;
 use futures_channel::mpsc::Receiver;
 use std::collections::HashSet;
 
 #[derive(Debug)]
 pub enum ProofManagerCommand {
-    LocalProof(ProofOfStore),
-    RemoteProof(ProofOfStore),
+    ReceiveProof(ProofOfStore),
     CommitNotification(LogicalTime, Vec<HashValue>),
     Shutdown(tokio::sync::oneshot::Sender<()>),
 }
 
 pub struct ProofManager {
+    my_peer_id: PeerId,
     proofs_for_consensus: ProofQueue,
     latest_logical_time: LogicalTime,
     back_pressure_total_txn_limit: u64,
@@ -36,10 +34,12 @@ pub struct ProofManager {
 impl ProofManager {
     pub fn new(
         epoch: u64,
+        my_peer_id: PeerId,
         back_pressure_total_txn_limit: u64,
         back_pressure_total_proof_limit: u64,
     ) -> Self {
         Self {
+            my_peer_id,
             proofs_for_consensus: ProofQueue::new(),
             latest_logical_time: LogicalTime::new(epoch, 0),
             back_pressure_total_txn_limit,
@@ -49,17 +49,9 @@ impl ProofManager {
         }
     }
 
-    pub(crate) async fn handle_local_proof(
-        &mut self,
-        proof: ProofOfStore,
-        network_sender: &mut NetworkSender,
-    ) {
-        self.proofs_for_consensus.push(proof.clone(), true);
-        network_sender.broadcast_proof_of_store(proof).await;
-    }
-
-    pub(crate) fn handle_remote_proof(&mut self, proof: ProofOfStore) {
-        self.proofs_for_consensus.push(proof, false);
+    pub(crate) fn receive_proof(&mut self, proof: ProofOfStore) {
+        let is_local = proof.info().batch_author == self.my_peer_id;
+        self.proofs_for_consensus.push(proof, is_local);
     }
 
     pub(crate) fn handle_commit_notification(
@@ -149,7 +141,6 @@ impl ProofManager {
 
     pub async fn start(
         mut self,
-        mut network_sender: NetworkSender,
         back_pressure_tx: tokio::sync::mpsc::Sender<BackPressure>,
         mut proposal_rx: Receiver<GetPayloadCommand>,
         mut proof_rx: tokio::sync::mpsc::Receiver<ProofManagerCommand>,
@@ -183,11 +174,8 @@ impl ProofManager {
                                 .expect("Failed to send shutdown ack to QuorumStore");
                             break;
                         },
-                        ProofManagerCommand::LocalProof(proof) => {
-                            self.handle_local_proof(proof, &mut network_sender).await;
-                        },
-                        ProofManagerCommand::RemoteProof(proof) => {
-                            self.handle_remote_proof(proof);
+                        ProofManagerCommand::ReceiveProof(proof) => {
+                            self.receive_proof(proof);
                         },
                         ProofManagerCommand::CommitNotification(logical_time, digests) => {
                             self.handle_commit_notification(logical_time, digests);
