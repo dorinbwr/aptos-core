@@ -1040,19 +1040,19 @@
         {
           "datasource": { "type": "prometheus", "uid": "${Datasource}" },
           "editorMode": "code",
-          "expr": "quorum_store_backpressure{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}",
+          "expr": "rate(quorum_store_backpressure_txn_count_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_backpressure_txn_count_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "QS_BACKPRESSURE",
+      "title": "QS_BACKPRESSURE_TXN_COUNT",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${Datasource}" },
-      "description": "Histogram for the number of proof-of-store per block when pulled for consensus.",
+      "description": "Indicator of whether Quorum Store is backpressured. QS should be backpressured when (1) number of batches exceeds the threshold, or (2) consensus is backpressured.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -1087,7 +1087,7 @@
         "overrides": []
       },
       "gridPos": { "h": 7, "w": 6, "x": 6, "y": 38 },
-      "id": 228,
+      "id": 232,
       "options": {
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -1096,18 +1096,19 @@
         {
           "datasource": { "type": "prometheus", "uid": "${Datasource}" },
           "editorMode": "code",
-          "expr": "rate(quorum_store_proof_size_when_pull_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_proof_size_when_pull_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
+          "expr": "rate(quorum_store_backpressure_proof_count_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_backpressure_proof_count_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
+          "hide": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "PROOF_SIZE_WHEN_PULL",
+      "title": "QS_BACKPRESSURE_PROOF_COUNT",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${Datasource}" },
-      "description": "Histogram for the number of transactions per block when pulled for consensus.",
+      "description": "placeholder",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -1142,7 +1143,7 @@
         "overrides": []
       },
       "gridPos": { "h": 7, "w": 6, "x": 12, "y": 38 },
-      "id": 210,
+      "id": 229,
       "options": {
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -1151,13 +1152,14 @@
         {
           "datasource": { "type": "prometheus", "uid": "${Datasource}" },
           "editorMode": "code",
-          "expr": "rate(quorum_store_block_size_when_pull_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_block_size_when_pull_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
+          "expr": "rate(quorum_store_backpressure_dynamic_max_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_backpressure_dynamic_max_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
+          "hide": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "BLOCK_SIZE_WHEN_PULL",
+      "title": "QS_BACKPRESSURE_DYNAMIC_MAX",
       "type": "timeseries"
     },
     {
@@ -1252,7 +1254,7 @@
         "overrides": []
       },
       "gridPos": { "h": 7, "w": 6, "x": 0, "y": 45 },
-      "id": 224,
+      "id": 230,
       "options": {
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -1261,13 +1263,13 @@
         {
           "datasource": { "type": "prometheus", "uid": "${Datasource}" },
           "editorMode": "code",
-          "expr": "rate(quorum_store_num_local_batch_left_when_pull_for_block_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_num_local_batch_left_when_pull_for_block_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
+          "expr": "rate(quorum_store_num_total_txns_left_on_commit_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_num_total_txns_left_on_commit_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "NUM_LOCAL_BATCH_LEFT_WHEN_PULL_FOR_BLOCK",
+      "title": "NUM_TOTAL_TXNS_LEFT_ON_COMMIT",
       "type": "timeseries"
     },
     {
@@ -1307,7 +1309,7 @@
         "overrides": []
       },
       "gridPos": { "h": 7, "w": 6, "x": 6, "y": 45 },
-      "id": 230,
+      "id": 224,
       "options": {
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -1316,18 +1318,18 @@
         {
           "datasource": { "type": "prometheus", "uid": "${Datasource}" },
           "editorMode": "code",
-          "expr": "rate(quorum_store_num_total_txns_left_on_commit_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_num_total_txns_left_on_commit_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
+          "expr": "rate(quorum_store_num_total_proofs_left_on_commit_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_num_total_proofs_left_on_commit_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "NUM_TOTAL_TXNS_LEFT_ON_COMMIT",
+      "title": "NUM_TOTAL_PROOFS_LEFT_ON_COMMIT",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${Datasource}" },
-      "description": "placeholder",
+      "description": "Histogram for the number of proof-of-store per block when pulled for consensus.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -1362,7 +1364,7 @@
         "overrides": []
       },
       "gridPos": { "h": 7, "w": 6, "x": 12, "y": 45 },
-      "id": 229,
+      "id": 228,
       "options": {
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -1371,19 +1373,18 @@
         {
           "datasource": { "type": "prometheus", "uid": "${Datasource}" },
           "editorMode": "code",
-          "expr": "quorum_store_backpressure_dynamic_max{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}",
-          "hide": false,
+          "expr": "rate(quorum_store_proof_size_when_pull_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_proof_size_when_pull_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "QS_BACKPRESSURE_DYNAMIC_MAX",
+      "title": "PROOF_SIZE_WHEN_PULL",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${Datasource}" },
-      "description": "placeholder",
+      "description": "Histogram for the number of transactions per block when pulled for consensus.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -1418,7 +1419,7 @@
         "overrides": []
       },
       "gridPos": { "h": 7, "w": 6, "x": 18, "y": 45 },
-      "id": 231,
+      "id": 210,
       "options": {
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -1427,13 +1428,13 @@
         {
           "datasource": { "type": "prometheus", "uid": "${Datasource}" },
           "editorMode": "code",
-          "expr": "rate(quorum_store_age_of_oldest_local_proof_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_age_of_oldest_local_proof_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
+          "expr": "rate(quorum_store_block_size_when_pull_sum{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval]) / rate(quorum_store_block_size_when_pull_count{chain_name=~\"$chain_name\", cluster=~\"$cluster\", metrics_source=~\"$metrics_source\", namespace=~\"$namespace\", kubernetes_pod_name=~\"$kubernetes_pod_name\", role=~\"$role\"}[$__rate_interval])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "AGE_OF_OLDEST_LOCAL_PROOF",
+      "title": "BLOCK_SIZE_WHEN_PULL",
       "type": "timeseries"
     },
     {
@@ -2652,6 +2653,6 @@
   "timezone": "",
   "title": "Quorum Store",
   "uid": "SnI98V7Vz",
-  "version": 57,
+  "version": 60,
   "weekStart": ""
 }
