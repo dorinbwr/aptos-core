@@ -25,7 +25,7 @@ use once_cell::sync::Lazy;
 use std::{
     collections::btree_map::BTreeMap,
     marker::PhantomData,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::{AtomicBool, Ordering}, time::Instant,
 };
 
 pub static RAYON_EXEC_POOL: Lazy<rayon::ThreadPool> = Lazy::new(|| {
@@ -392,6 +392,8 @@ where
         signature_verified_block: Vec<T>,
         base_view: &S,
     ) -> Result<Vec<(E::Output, Vec<(T::Key, WriteOp)>)>, E::Error> {
+        let start_time = Instant::now();
+
         let mut ret = if self.concurrency_level > 1 {
             self.execute_transactions_parallel(
                 executor_arguments,
@@ -424,6 +426,10 @@ where
             // Explicit async drops.
             drop(signature_verified_block);
         });
+
+        let elapsed_time = start_time.elapsed();
+
+        println!("Elapsed time: {:.2?}", elapsed_time);
 
         ret
     }
